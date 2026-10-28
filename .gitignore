@@ -1,0 +1,29 @@
+# Build output (air writes here too)
+bin/
+tmp/
+*.exe
+*.test
+*.out
+
+# Environment / secrets
+.envrc
+.env
+.env.*
+!.envrc.example
+!.env.example
+.direnv/
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+
+# Go workspace
+go.work
+go.work.sum
+
+# Logs
+*.log
