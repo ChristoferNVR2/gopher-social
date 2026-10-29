@@ -68,3 +68,47 @@ func (s *PostsStore) GetByID(ctx context.Context, id int64) (*models.Post, error
 	}
 	return &post, nil
 }
+
+func (s *PostsStore) Delete(ctx context.Context, id int64) error {
+	const query = `
+		DELETE FROM posts
+		WHERE id = $1;
+	`
+
+	result, err := s.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+
+	count, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if count == 0 {
+		return ErrNotFound
+	}
+
+	return nil
+}
+
+func (s *PostsStore) Update(ctx context.Context, post *models.Post) error {
+	const query = `
+		UPDATE posts
+		SET title = $1, content $2
+		WHERE id = $3
+	`
+
+	_, err := s.db.ExecContext(
+		ctx,
+		query,
+		post.Title,
+		post.Title,
+		post.ID,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
