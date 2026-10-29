@@ -52,7 +52,7 @@ func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "postID")
 	id, err := strconv.ParseInt(idParam, 10, 64)
 	if err != nil {
-		app.internalServerError(w, r, err)
+		app.badRequestResponse(w, r, err)
 		return
 	}
 
@@ -70,7 +70,18 @@ func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := writeJSON(w, http.StatusOK, post); err != nil {
+	comments, err := app.store.Comments.GetByPostID(ctx, post.ID)
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	postWithComments := models.PostWithMetadata{
+		Post:     *post,
+		Comments: comments,
+	}
+
+	if err := writeJSON(w, http.StatusOK, postWithComments); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}

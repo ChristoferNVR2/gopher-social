@@ -1,0 +1,52 @@
+package store
+
+import (
+	"context"
+	"database/sql"
+
+	"github.com/ChristoferNVR2/gopher-social/internal/models"
+)
+
+type CommentsStore struct {
+	db *sql.DB
+}
+
+func (s *CommentsStore) GetByPostID(ctx context.Context, postID int64) ([]models.CommentWithUser, error) {
+	const query = `
+		SELECT c.id, c.post_id, c.user_id, c.content, c.created_at, u.username, u.id FROM comments c
+		JOIN users u ON c.user_id = u.id
+		WHERE c.post_id = $1
+		ORDER BY c.created_at DESC
+	`
+
+	rows, err := s.db.QueryContext(ctx, query, postID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var comments []models.CommentWithUser
+	for rows.Next() {
+		var c models.CommentWithUser
+		c.User = models.User{}
+		err := rows.Scan(
+			&c.ID,
+			&c.PostID,
+			&c.UserID,
+			&c.Content,
+			&c.CreatedAt,
+			&c.User.Username,
+			&c.User.ID,
+		)
+		if err != nil {
+			return nil, err
+		}
+		comments = append(comments, c)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return comments, nil
+}
