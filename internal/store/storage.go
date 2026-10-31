@@ -4,13 +4,15 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/ChristoferNVR2/gopher-social/internal/models"
 )
 
 var (
-	ErrNotFound     = errors.New("record not found")
-	ErrEditConflict = errors.New("edit conflict")
+	ErrNotFound          = errors.New("record not found")
+	ErrEditConflict      = errors.New("edit conflict")
+	QueryTimeoutDuration = 5 * time.Second
 )
 
 type Storage struct {
