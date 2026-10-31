@@ -42,7 +42,7 @@ func (s *PostsStore) Create(ctx context.Context, post *models.Post) error {
 
 func (s *PostsStore) GetByID(ctx context.Context, id int64) (*models.Post, error) {
 	const query = `
-		SELECT id, content, title, user_id, tags, created_at, updated_at
+		SELECT id, content, title, user_id, tags, created_at, updated_at, version
 		FROM posts
 		WHERE id = $1
 	`
@@ -57,6 +57,7 @@ func (s *PostsStore) GetByID(ctx context.Context, id int64) (*models.Post, error
 		pq.Array(&post.Tags),
 		&post.CreatedAt,
 		&post.UpdatedAt,
+		&post.Version,
 	)
 	if err != nil {
 		switch {
@@ -95,19 +96,26 @@ func (s *PostsStore) Delete(ctx context.Context, id int64) error {
 func (s *PostsStore) Update(ctx context.Context, post *models.Post) error {
 	const query = `
 		UPDATE posts
-		SET title = $1, content $2
-		WHERE id = $3
+		SET title = $1, content = $2, version = version + 1
+		WHERE id = $3 AND version = $4
+		RETURNING version
 	`
 
-	_, err := s.db.ExecContext(
+	err := s.db.QueryRowContext(
 		ctx,
 		query,
 		post.Title,
-		post.Title,
+		post.Content,
 		post.ID,
-	)
+		post.Version,
+	).Scan(&post.Version)
 	if err != nil {
-		return err
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrEditConflict
+		default:
+			return err
+		}
 	}
 
 	return nil

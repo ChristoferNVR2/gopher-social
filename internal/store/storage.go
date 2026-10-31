@@ -9,7 +9,8 @@ import (
 )
 
 var (
-	ErrNotFound = errors.New("record not found")
+	ErrNotFound     = errors.New("record not found")
+	ErrEditConflict = errors.New("edit conflict")
 )
 
 type Storage struct {
