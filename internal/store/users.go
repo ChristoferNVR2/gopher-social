@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/ChristoferNVR2/gopher-social/internal/models"
 )
@@ -34,4 +35,33 @@ func (s *UsersStore) Create(ctx context.Context, user *models.User) error {
 	}
 
 	return nil
+}
+
+func (s *UsersStore) GetByID(ctx context.Context, id int64) (*models.User, error) {
+	const query = `
+		SELECT id, username, email, created_at
+		FROM users
+		WHERE id = $1
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	var user models.User
+
+	err := s.db.QueryRowContext(ctx, query, id).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Email,
+		&user.CreatedAt,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrNotFound
+		default:
+			return nil, err
+		}
+	}
+	return &user, nil
 }
