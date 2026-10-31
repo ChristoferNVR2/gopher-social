@@ -27,6 +27,7 @@ type Storage struct {
 	}
 	Comments interface {
 		GetByPostID(context.Context, int64) ([]models.CommentWithUser, error)
+		Create(context.Context, *models.Comment) error
 	}
 }
 
