@@ -11,7 +11,13 @@ type Post struct {
 	Version   int      `json:"version"`
 }
 
-type PostWithMetadata struct {
+type PostWithComments struct {
 	Post
 	Comments []CommentWithUser `json:"comments"`
+	User     User              `json:"user"`
+}
+
+type PostWithMetadata struct {
+	PostWithComments
+	CommentsCount int `json:"comments_count"`
 }

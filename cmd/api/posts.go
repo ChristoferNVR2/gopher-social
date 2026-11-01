@@ -62,7 +62,7 @@ func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postWithComments := models.PostWithMetadata{
+	postWithComments := models.PostWithComments{
 		Post:     *post,
 		Comments: comments,
 	}
