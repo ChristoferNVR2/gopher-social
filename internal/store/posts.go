@@ -124,7 +124,7 @@ func (s *PostsStore) Update(ctx context.Context, post *models.Post) error {
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ErrEditConflict
+			return ErrConflict
 		default:
 			return err
 		}

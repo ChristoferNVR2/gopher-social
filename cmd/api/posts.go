@@ -131,7 +131,7 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 	err := app.store.Posts.Update(r.Context(), post)
 	if err != nil {
 		switch {
-		case errors.Is(err, store.ErrEditConflict):
+		case errors.Is(err, store.ErrConflict):
 			app.conflictResponse(w, r, err)
 			return
 		default:
