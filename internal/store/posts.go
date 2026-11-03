@@ -143,7 +143,7 @@ func (s *PostsStore) GetUserFeed(ctx context.Context, userID int64, fq Paginated
 		LEFT JOIN users u ON p.user_id = u."id"
 		JOIN followers f ON f.follower_id = p.user_id OR p.user_id = $1
 		WHERE
-		    f.user_id = $1 OR p.user_id = $1 AND (
+		    (f.user_id = $1 OR p.user_id = $1) AND (
 		        p.title ILIKE '%' || $4 || '%' OR
 		        p.content ILIKE '%' || $4 || '%'
 		    ) AND (
@@ -157,14 +157,20 @@ func (s *PostsStore) GetUserFeed(ctx context.Context, userID int64, fq Paginated
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	rows, err := s.db.QueryContext(ctx, query, userID, fq.Limit, fq.Offset, fq.Search, pq.Array(fq.Tags))
+	// pq.Array(nil slice) is sent as NULL, which makes `$5 = '{}'` NULL and filters out every row.
+	tags := fq.Tags
+	if tags == nil {
+		tags = []string{}
+	}
+
+	rows, err := s.db.QueryContext(ctx, query, userID, fq.Limit, fq.Offset, fq.Search, pq.Array(tags))
 	if err != nil {
 		return nil, err
 	}
 
 	defer rows.Close()
 
-	var feed []models.PostWithMetadata
+	feed := []models.PostWithMetadata{}
 	for rows.Next() {
 		var post models.PostWithMetadata
 		err := rows.Scan(
