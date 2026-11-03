@@ -21,6 +21,21 @@ type CreatePostPayload struct {
 	Tags    []string `json:"tags"`
 }
 
+// CreatePost godoc
+//
+//	@Summary		Creates a post
+//	@Description	Creates a new post.
+//	@Tags			posts
+//	@Accept			json
+//	@Produce		json
+//	@Param			payload	body		CreatePostPayload	true	"Post payload"
+//	@Success		201		{object}	models.Post
+//	@Failure		400		{object}	error	"Invalid or missing title/content, or malformed JSON"
+//	@Failure		500		{object}	error	"Failed to create the post"
+//
+//	@Security		ApiKeyAuth
+//
+//	@Router			/posts [post]
 func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request) {
 	var payload CreatePostPayload
 	if err := readJSON(w, r, &payload); err != nil {
@@ -53,6 +68,22 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
+// GetPost godoc
+//
+//	@Summary		Fetches a post
+//	@Description	Fetches a post by ID, including its comments.
+//	@Tags			posts
+//	@Accept			json
+//	@Produce		json
+//	@Param			postID	path		int	true	"Post ID"
+//	@Success		200		{object}	models.PostWithComments
+//	@Failure		400		{object}	error	"Invalid post ID"
+//	@Failure		404		{object}	error	"Post not found"
+//	@Failure		500		{object}	error	"Failed to fetch the post or its comments"
+//
+//	@Security		ApiKeyAuth
+//
+//	@Router			/posts/{postID} [get]
 func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 	post := getPostFromCtx(r)
 
@@ -73,6 +104,22 @@ func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// DeletePost godoc
+//
+//	@Summary		Deletes a post
+//	@Description	Deletes a post by ID.
+//	@Tags			posts
+//	@Accept			json
+//	@Produce		json
+//	@Param			postID	path	int	true	"Post ID"
+//	@Success		204		"Post deleted"
+//	@Failure		400		{object}	error	"Invalid post ID"
+//	@Failure		404		{object}	error	"Post not found"
+//	@Failure		500		{object}	error	"Failed to delete the post"
+//
+//	@Security		ApiKeyAuth
+//
+//	@Router			/posts/{postID} [delete]
 func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "postID")
 	id, err := strconv.ParseInt(idParam, 10, 64)
@@ -106,6 +153,24 @@ type UpdatePostPayload struct {
 	Content *string `json:"content" validate:"omitempty,max=1000"`
 }
 
+// UpdatePost godoc
+//
+//	@Summary		Updates a post
+//	@Description	Updates the title and/or content of a post.
+//	@Tags			posts
+//	@Accept			json
+//	@Produce		json
+//	@Param			postID	path		int					true	"Post ID"
+//	@Param			payload	body		UpdatePostPayload	true	"Post payload"
+//	@Success		200		{object}	models.Post
+//	@Failure		400		{object}	error	"Invalid post ID, malformed JSON or invalid title/content"
+//	@Failure		404		{object}	error	"Post not found"
+//	@Failure		409		{object}	error	"Post was modified by someone else (version conflict)"
+//	@Failure		500		{object}	error	"Failed to update the post"
+//
+//	@Security		ApiKeyAuth
+//
+//	@Router			/posts/{postID} [patch]
 func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request) {
 	post := getPostFromCtx(r)
 
