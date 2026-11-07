@@ -20,6 +20,23 @@ definitions:
       follower_id:
         type: integer
     type: object
+  main.RegisterUserPayload:
+    properties:
+      email:
+        maxLength: 100
+        type: string
+      password:
+        maxLength: 100
+        minLength: 8
+        type: string
+      username:
+        maxLength: 100
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
   main.UpdatePostPayload:
     properties:
       content:
@@ -135,6 +152,37 @@ definitions:
 info:
   contact: {}
 paths:
+  /authentication/user:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user account.
+      parameters:
+      - description: User registration payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.RegisterUserPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User registered successfully
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Invalid or missing username/email/password, or malformed JSON
+          schema: {}
+        "409":
+          description: Username or email already exists
+          schema: {}
+        "500":
+          description: Failed to register the user
+          schema: {}
+      summary: Register a new user
+      tags:
+      - authentication
   /health:
     get:
       description: Returns the API status, environment and version.

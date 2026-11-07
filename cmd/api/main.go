@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/ChristoferNVR2/gopher-social/internal/db"
 	"github.com/ChristoferNVR2/gopher-social/internal/env"
 	"github.com/ChristoferNVR2/gopher-social/internal/store"
@@ -38,6 +40,9 @@ func main() {
 		},
 		env:     env.GetString("ENV", "development"),
 		version: version,
+		mail: mailConfig{
+			exp: time.Hour * 24 * 3,
+		},
 	}
 
 	logger := zap.Must(zap.NewProduction()).Sugar()

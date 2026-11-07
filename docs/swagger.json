@@ -4,6 +4,52 @@
         "contact": {}
     },
     "paths": {
+        "/authentication/user": {
+            "post": {
+                "description": "Creates a new user account.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "authentication"
+                ],
+                "summary": "Register a new user",
+                "parameters": [
+                    {
+                        "description": "User registration payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.RegisterUserPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "User registered successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid or missing username/email/password, or malformed JSON",
+                        "schema": {}
+                    },
+                    "409": {
+                        "description": "Username or email already exists",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Failed to register the user",
+                        "schema": {}
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "security": [
@@ -522,6 +568,29 @@
             "properties": {
                 "follower_id": {
                     "type": "integer"
+                }
+            }
+        },
+        "main.RegisterUserPayload": {
+            "type": "object",
+            "required": [
+                "email",
+                "password",
+                "username"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 8
+                },
+                "username": {
+                    "type": "string",
+                    "maxLength": 100
                 }
             }
         },
