@@ -29,7 +29,7 @@ func (s *UsersStore) Create(ctx context.Context, tx *sql.Tx, user *models.User) 
 		ctx,
 		query,
 		user.Username,
-		user.Password,
+		user.Password.Hash,
 		user.Email,
 	).Scan(
 		&user.ID,

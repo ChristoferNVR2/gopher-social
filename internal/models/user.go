@@ -12,7 +12,7 @@ type User struct {
 
 type password struct {
 	text *string
-	hash []byte
+	Hash []byte
 }
 
 func (p *password) Set(text string) error {
@@ -22,7 +22,7 @@ func (p *password) Set(text string) error {
 	}
 
 	p.text = &text
-	p.hash = hash
+	p.Hash = hash
 
 	return nil
 }
