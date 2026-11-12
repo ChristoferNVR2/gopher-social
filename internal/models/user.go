@@ -8,6 +8,12 @@ type User struct {
 	Email     string   `json:"email"`
 	Password  password `json:"-"`
 	CreatedAt string   `json:"created_at"`
+	IsActive  bool     `json:"is_active"`
+}
+
+type UserWithToken struct {
+	*User
+	Token string `json:"token"`
 }
 
 type password struct {

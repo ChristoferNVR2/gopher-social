@@ -146,6 +146,23 @@ definitions:
         type: string
       id:
         type: integer
+      is_active:
+        type: boolean
+      username:
+        type: string
+    type: object
+  models.UserWithToken:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      token:
+        type: string
       username:
         type: string
     type: object
@@ -170,7 +187,7 @@ paths:
         "201":
           description: User registered successfully
           schema:
-            $ref: '#/definitions/models.User'
+            $ref: '#/definitions/models.UserWithToken'
         "400":
           description: Invalid or missing username/email/password, or malformed JSON
           schema: {}
@@ -441,6 +458,31 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Unfollows a user
+      tags:
+      - users
+  /users/activate/{token}:
+    put:
+      description: Activates a user account using the provided activation token.
+      parameters:
+      - description: Activation token
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: User account activated successfully
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Activates/Registers a user account
       tags:
       - users
   /users/feed:

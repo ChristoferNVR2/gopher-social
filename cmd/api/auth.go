@@ -24,11 +24,11 @@ type RegisterUserPayload struct {
 //	@Tags			authentication
 //	@Accept			json
 //	@Produce		json
-//	@Param			payload	body		RegisterUserPayload	true	"User registration payload"
-//	@Success		201		{object}	models.User			"User registered successfully"
-//	@Failure		400		{object}	error				"Invalid or missing username/email/password, or malformed JSON"
-//	@Failure		409		{object}	error				"Username or email already exists"
-//	@Failure		500		{object}	error				"Failed to register the user"
+//	@Param			payload	body		RegisterUserPayload		true	"User registration payload"
+//	@Success		201		{object}	models.UserWithToken	"User registered successfully"
+//	@Failure		400		{object}	error					"Invalid or missing username/email/password, or malformed JSON"
+//	@Failure		409		{object}	error					"Username or email already exists"
+//	@Failure		500		{object}	error					"Failed to register the user"
 //
 //	@Router			/authentication/user [post]
 func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -73,9 +73,14 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	userWithToken := models.UserWithToken{
+		User:  &user,
+		Token: plainToken,
+	}
+
 	// TODO: mail the user with the invite code
 
-	if err := app.jsonResponse(w, http.StatusCreated, nil); err != nil {
+	if err := app.jsonResponse(w, http.StatusCreated, userWithToken); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}
