@@ -1,0 +1,21 @@
+{{define "subject"}}Finish Registration with GopherSocial{{end}}
+
+{{define "body"}}
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Finish Registration</title>
+    </head>
+    <body>
+        <h1>Welcome to GopherSocial, {{.Username}}!</h1>
+        <p>Thank you for signing up. Please click the link below to finish your registration:</p>
+        <p><a href="{{.ActivationURL}}">Finish Registration</a></p>
+        <p>If you did not sign up for GopherSocial, please ignore this email.</p>
+        <p>Best regards,<br>The GopherSocial Team</p>
+    </body>
+</html>
+
+{{end}}

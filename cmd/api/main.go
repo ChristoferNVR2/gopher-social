@@ -5,6 +5,7 @@ import (
 
 	"github.com/ChristoferNVR2/gopher-social/internal/db"
 	"github.com/ChristoferNVR2/gopher-social/internal/env"
+	"github.com/ChristoferNVR2/gopher-social/internal/mailer"
 	"github.com/ChristoferNVR2/gopher-social/internal/store"
 	"go.uber.org/zap"
 )
@@ -30,8 +31,9 @@ const version = "0.0.2"
 // @description
 func main() {
 	cfg := config{
-		addr:   env.GetString("ADDR", ":8080"),
-		apiURL: env.GetString("API_URL", "localhost:8080"),
+		addr:        env.GetString("ADDR", ":8080"),
+		apiURL:      env.GetString("API_URL", "localhost:8080"),
+		frontendURL: env.GetString("FRONTEND_URL", "http://localhost:5173"),
 		db: dbConfig{
 			addr:         env.GetString("DB_ADDR", "postgres://admin:adminpassword@localhost:5432/gopher-social?sslmode=disable"),
 			maxOpenConns: env.GetInt("DB_MAX_OPEN_CONNS", 30),
@@ -41,7 +43,11 @@ func main() {
 		env:     env.GetString("ENV", "development"),
 		version: version,
 		mail: mailConfig{
-			exp: time.Hour * 24 * 3,
+			resend: resendConfig{
+				apiKey: env.GetString("RESEND_API_KEY", ""),
+			},
+			fromEmail: env.GetString("FROM_EMAIL", ""),
+			exp:       time.Hour * 24 * 3,
 		},
 	}
 
@@ -63,10 +69,16 @@ func main() {
 
 	store := store.NewStorage(db)
 
+	resend, err := mailer.NewResend(cfg.mail.resend.apiKey, cfg.mail.fromEmail)
+	if err != nil {
+		logger.Fatal(err)
+	}
+
 	app := &application{
 		config: cfg,
 		store:  store,
 		logger: logger,
+		mailer: resend,
 	}
 
 	mux := app.mount()

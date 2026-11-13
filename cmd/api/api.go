@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/ChristoferNVR2/gopher-social/docs"
+	"github.com/ChristoferNVR2/gopher-social/internal/mailer"
 	"github.com/ChristoferNVR2/gopher-social/internal/store"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -17,19 +18,27 @@ type application struct {
 	config config
 	store  store.Storage
 	logger *zap.SugaredLogger
+	mailer mailer.Client
 }
 
 type config struct {
-	addr    string
-	db      dbConfig
-	env     string
-	version string
-	apiURL  string
-	mail    mailConfig
+	addr        string
+	db          dbConfig
+	env         string
+	version     string
+	apiURL      string
+	frontendURL string
+	mail        mailConfig
 }
 
 type mailConfig struct {
-	exp time.Duration
+	resend    resendConfig
+	fromEmail string
+	exp       time.Duration
+}
+
+type resendConfig struct {
+	apiKey string
 }
 
 type dbConfig struct {

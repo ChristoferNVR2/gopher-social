@@ -200,3 +200,34 @@ func (s *UsersStore) update(ctx context.Context, tx *sql.Tx, user *models.User) 
 
 	return nil
 }
+
+func (s *UsersStore) Delete(ctx context.Context, userID int64) error {
+	return withTx(ctx, s.db, func(tx *sql.Tx) error {
+		if err := s.delete(ctx, tx, userID); err != nil {
+			return err
+		}
+
+		if err := s.deleteUserInvitation(ctx, tx, userID); err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+func (s *UsersStore) delete(ctx context.Context, tx *sql.Tx, userID int64) error {
+	const query = `
+		DELETE FROM users
+		WHERE id = $1
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	_, err := tx.ExecContext(ctx, query, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
