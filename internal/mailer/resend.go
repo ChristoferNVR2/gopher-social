@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"log"
 	"text/template"
 	"time"
 
@@ -30,24 +29,25 @@ func NewResend(apiKey, fromEmail string) (*ResendMailer, error) {
 	}, nil
 }
 
-func (m ResendMailer) Send(templateFile, username, email string, data any, isSandbox bool) error {
+func (m ResendMailer) Send(templateFile, username, email string, data any, isSandbox bool) (int, error) {
 	tmpl, err := template.ParseFS(FS, "templates/"+templateFile)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	subject := new(bytes.Buffer)
 	err = tmpl.ExecuteTemplate(subject, "subject", data)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	body := new(bytes.Buffer)
 	err = tmpl.ExecuteTemplate(body, "body", data)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
+	// TODO: Uncomment this when we are ready to send emails in production
 	//if isSandbox {
 	//	log.Printf("[sandbox] would send %q to %s", subject.String(), email)
 	//	return nil
@@ -60,15 +60,15 @@ func (m ResendMailer) Send(templateFile, username, email string, data any, isSan
 		Subject: subject.String(),
 	}
 
+	var retryErr error
+
 	for i := 0; i < maxRetries; i++ {
-		sent, err := m.client.Emails.Send(params)
+		_, err := m.client.Emails.Send(params)
 		if err != nil {
-			log.Printf("Failed to send email to %v, attempt %d of %d: %v", email, i+1, maxRetries, err)
 			time.Sleep(time.Second * time.Duration(i+1)) // Exponential backoff
 			continue
 		}
-		log.Printf("Email sent with ID %v", sent.Id)
-		return nil
+		return 200, nil
 	}
-	return fmt.Errorf("failed to send email after %d attempts", maxRetries)
+	return -1, fmt.Errorf("failed to send email after %d attempts, error: %v", maxRetries, retryErr)
 }
