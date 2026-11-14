@@ -54,7 +54,7 @@ func (s *UsersStore) Create(ctx context.Context, tx *sql.Tx, user *models.User) 
 
 func (s *UsersStore) GetByID(ctx context.Context, id int64) (*models.User, error) {
 	const query = `
-		SELECT id, username, email, created_at
+		SELECT id, username, email, password, created_at
 		FROM users
 		WHERE id = $1
 	`
@@ -68,6 +68,7 @@ func (s *UsersStore) GetByID(ctx context.Context, id int64) (*models.User, error
 		&user.ID,
 		&user.Username,
 		&user.Email,
+		&user.Password.Hash,
 		&user.CreatedAt,
 	)
 	if err != nil {
