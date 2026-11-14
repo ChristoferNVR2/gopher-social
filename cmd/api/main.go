@@ -3,6 +3,7 @@ package main
 import (
 	"time"
 
+	"github.com/ChristoferNVR2/gopher-social/internal/auth"
 	"github.com/ChristoferNVR2/gopher-social/internal/db"
 	"github.com/ChristoferNVR2/gopher-social/internal/env"
 	"github.com/ChristoferNVR2/gopher-social/internal/mailer"
@@ -54,6 +55,11 @@ func main() {
 				user: env.GetString("BASIC_AUTH_USER", "admin"),
 				pass: env.GetString("BASIC_AUTH_PASS", "password"),
 			},
+			token: tokenConfig{
+				secret: env.GetString("AUTH_TOKEN_SECRET", "mysecretkey"),
+				exp:    time.Hour * 24 * 3,
+				issuer: "gopher-social",
+			},
 		},
 	}
 
@@ -71,7 +77,7 @@ func main() {
 	}
 	defer db.Close()
 
-	logger.Info("database connection pool established")
+	logger.Info("database cerronnection pool established")
 
 	store := store.NewStorage(db)
 
@@ -80,11 +86,18 @@ func main() {
 		logger.Fatal(err)
 	}
 
+	jwtAuthenticator := auth.NewJWTAuthenticator(
+		cfg.auth.token.secret,
+		cfg.auth.token.issuer,
+		cfg.auth.token.issuer,
+	)
+
 	app := &application{
-		config: cfg,
-		store:  store,
-		logger: logger,
-		mailer: resend,
+		config:        cfg,
+		store:         store,
+		logger:        logger,
+		mailer:        resend,
+		authenticator: jwtAuthenticator,
 	}
 
 	mux := app.mount()

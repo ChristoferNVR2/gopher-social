@@ -4,6 +4,52 @@
         "contact": {}
     },
     "paths": {
+        "/authentication/token": {
+            "post": {
+                "description": "Creates a new token for a user based on their username and password.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "authentication"
+                ],
+                "summary": "Create a new token for a user",
+                "parameters": [
+                    {
+                        "description": "User credentials payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.CreateUserTokenPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Token created successfully",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid or missing username/password, or malformed JSON",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Invalid username or password",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Failed to create token",
+                        "schema": {}
+                    }
+                }
+            }
+        },
         "/authentication/user": {
             "post": {
                 "description": "Creates a new user account.",
@@ -597,6 +643,24 @@
                 "title": {
                     "type": "string",
                     "maxLength": 100
+                }
+            }
+        },
+        "main.CreateUserTokenPayload": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 8
                 }
             }
         },

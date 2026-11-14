@@ -29,6 +29,7 @@ require (
 	github.com/go-openapi/swag/yamlutils v0.29.2 // indirect
 	github.com/go-playground/locales v0.14.2 // indirect
 	github.com/go-playground/universal-translator v0.18.2 // indirect
+	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/leodido/go-urn v1.5.0 // indirect
 	github.com/resend/resend-go/v4 v4.12.1 // indirect
 	github.com/sendgrid/rest v2.6.9+incompatible // indirect
