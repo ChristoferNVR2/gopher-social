@@ -39,6 +39,12 @@ func writeJSONError(w http.ResponseWriter, status int, message string) error {
 }
 
 func (app *application) jsonResponse(w http.ResponseWriter, status int, data any) error {
+	// 204 responses must not have a body
+	if status == http.StatusNoContent {
+		w.WriteHeader(status)
+		return nil
+	}
+
 	type envelope struct {
 		Data any `json:"data"`
 	}
