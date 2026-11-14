@@ -49,6 +49,12 @@ func main() {
 			fromEmail: env.GetString("FROM_EMAIL", ""),
 			exp:       time.Hour * 24 * 3,
 		},
+		auth: authConfig{
+			basic: basicAuthConfig{
+				user: env.GetString("BASIC_AUTH_USER", "admin"),
+				pass: env.GetString("BASIC_AUTH_PASS", "password"),
+			},
+		},
 	}
 
 	logger := zap.Must(zap.NewProduction()).Sugar()
