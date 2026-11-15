@@ -22,10 +22,13 @@ type UsersStore struct {
 
 func (s *UsersStore) Create(ctx context.Context, tx *sql.Tx, user *models.User) error {
 	const query = `
-		INSERT INTO users (username, password, email)
-		VALUES ($1, $2, $3)
+		INSERT INTO users (username, password, email, role_id)
+		VALUES ($1, $2, $3, COALESCE(NULLIF($4, 0), (SELECT id FROM roles WHERE name = 'user')))
 		RETURNING id, created_at
 	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
 
 	err := s.db.QueryRowContext(
 		ctx,
@@ -33,6 +36,7 @@ func (s *UsersStore) Create(ctx context.Context, tx *sql.Tx, user *models.User) 
 		user.Username,
 		user.Password.Hash,
 		user.Email,
+		user.RoleID,
 	).Scan(
 		&user.ID,
 		&user.CreatedAt,
@@ -41,9 +45,9 @@ func (s *UsersStore) Create(ctx context.Context, tx *sql.Tx, user *models.User) 
 	if err != nil {
 		switch {
 		case err.Error() == `pq: duplicate key value violates unique constraint "users_username_key"`:
-			return ErrDuplicatedEmail
-		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:
 			return ErrDuplicatedUsername
+		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:
+			return ErrDuplicatedEmail
 		default:
 			return err
 		}
@@ -54,9 +58,10 @@ func (s *UsersStore) Create(ctx context.Context, tx *sql.Tx, user *models.User) 
 
 func (s *UsersStore) GetByID(ctx context.Context, id int64) (*models.User, error) {
 	const query = `
-		SELECT id, username, email, password, created_at
-		FROM users
-		WHERE id = $1
+		SELECT u.id, u.username, u.email, u.password, u.created_at, r.id, r.name, r.description, r.level
+		FROM users u
+		JOIN roles r ON (u.role_id = r.id)
+		WHERE u.id = $1 AND is_active = true
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
@@ -70,6 +75,10 @@ func (s *UsersStore) GetByID(ctx context.Context, id int64) (*models.User, error
 		&user.Email,
 		&user.Password.Hash,
 		&user.CreatedAt,
+		&user.Role.ID,
+		&user.Role.Name,
+		&user.Role.Description,
+		&user.Role.Level,
 	)
 	if err != nil {
 		switch {
