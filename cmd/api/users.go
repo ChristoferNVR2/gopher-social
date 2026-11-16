@@ -47,8 +47,7 @@ func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 //	@Tags			users
 //	@Accept			json
 //	@Produce		json
-//	@Param			userID	path	int				true	"ID of the user to follow"
-//	@Param			payload	body	FollowerPayload	true	"Follower payload"
+//	@Param			userID	path	int	true	"ID of the user to follow"
 //	@Success		204		"User followed"
 //	@Failure		400		{object}	error	"Invalid user ID or malformed JSON"
 //	@Failure		404		{object}	error	"User not found"
@@ -93,8 +92,7 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 //	@Tags			users
 //	@Accept			json
 //	@Produce		json
-//	@Param			userID	path	int				true	"ID of the user to unfollow"
-//	@Param			payload	body	FollowerPayload	true	"Follower payload"
+//	@Param			userID	path	int	true	"ID of the user to unfollow"
 //	@Success		204		"User unfollowed"
 //	@Failure		400		{object}	error	"Invalid user ID or malformed JSON"
 //	@Failure		404		{object}	error	"User not found"

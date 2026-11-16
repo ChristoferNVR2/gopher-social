@@ -24,7 +24,7 @@ func (s *UsersStore) Create(ctx context.Context, tx *sql.Tx, user *models.User) 
 	const query = `
 		INSERT INTO users (username, password, email, role_id)
 		VALUES ($1, $2, $3, COALESCE(NULLIF($4, 0), (SELECT id FROM roles WHERE name = 'user')))
-		RETURNING id, created_at
+		RETURNING id, created_at, role_id
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
@@ -40,6 +40,7 @@ func (s *UsersStore) Create(ctx context.Context, tx *sql.Tx, user *models.User) 
 	).Scan(
 		&user.ID,
 		&user.CreatedAt,
+		&user.RoleID,
 	)
 
 	if err != nil {
