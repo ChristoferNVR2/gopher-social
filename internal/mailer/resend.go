@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"log"
 	"text/template"
 	"time"
 
@@ -47,11 +48,23 @@ func (m ResendMailer) Send(templateFile, username, email string, data any, isSan
 		return -1, err
 	}
 
-	// TODO: Uncomment this when we are ready to send emails in production
-	//if isSandbox {
-	//	log.Printf("[sandbox] would send %q to %s", subject.String(), email)
-	//	return nil
-	//}
+	// Sandbox mode (enabled whenever ENV is not production) skips the Resend
+	// call entirely and only logs the email that would have been sent.
+	//
+	// This is needed because the Resend account has no verified sending domain,
+	// so it can only deliver to the API key owner's address; sending to any
+	// other recipient would fail and abort the registration flow.
+	//
+	// Remove or relax this once a domain is verified in Resend.
+
+	// TODO: DELETE COMMENT AND UNCOMMENT SWITCH BELOW WHEN DOMAIN IS VERIFIED
+	// COMMENTED -> ALLOWS SENDING TO API HOLDER'S EMAIL ONLY
+	// UNCOMMENTED -> PRODUCTION ENVIRONMENT: ALLOWS SENDING TO ANY EMAIL
+	// 			   -> DEVELOPMENT ENVIRONMENT: SANDBOX MODE (LOGS EMAIL INSTEAD OF SENDING)
+	if isSandbox {
+		log.Printf("[sandbox] would send %q to %s", subject.String(), email)
+		return 200, nil
+	}
 
 	params := &resend.SendEmailRequest{
 		From:    fmt.Sprintf("%s <%s>", FromName, m.fromEmail),
@@ -63,8 +76,8 @@ func (m ResendMailer) Send(templateFile, username, email string, data any, isSan
 	var retryErr error
 
 	for i := 0; i < maxRetries; i++ {
-		_, err := m.client.Emails.Send(params)
-		if err != nil {
+		_, retryErr = m.client.Emails.Send(params)
+		if retryErr != nil {
 			time.Sleep(time.Second * time.Duration(i+1)) // Exponential backoff
 			continue
 		}
