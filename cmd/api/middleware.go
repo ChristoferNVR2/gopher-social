@@ -115,7 +115,7 @@ func (app *application) checkPostOwnership(requiredRole string, next http.Handle
 	})
 }
 
-func (app *application) checkRolePrecedence(ctx context.Context, user *models.User, roleName string) (bool, error) {
+func (app *application) checkRolePrecedence(ctx context.Context, user *models.UserWithRole, roleName string) (bool, error) {
 	role, err := app.store.Roles.GetByName(ctx, roleName)
 	if err != nil {
 		return false, err

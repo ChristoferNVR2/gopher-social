@@ -56,7 +56,7 @@ func (s *UsersStore) Create(ctx context.Context, tx *sql.Tx, user *models.User) 
 	return nil
 }
 
-func (s *UsersStore) GetByID(ctx context.Context, id int64) (*models.User, error) {
+func (s *UsersStore) GetByID(ctx context.Context, id int64) (*models.UserWithRole, error) {
 	const query = `
 		SELECT u.id, u.username, u.email, u.password, u.created_at, r.id, r.name, r.description, r.level
 		FROM users u
@@ -67,7 +67,7 @@ func (s *UsersStore) GetByID(ctx context.Context, id int64) (*models.User, error
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	var user models.User
+	user := models.UserWithRole{User: &models.User{}}
 
 	err := s.db.QueryRowContext(ctx, query, id).Scan(
 		&user.ID,

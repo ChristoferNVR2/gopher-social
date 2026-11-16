@@ -23,7 +23,7 @@ const userCtx userKey = "user"
 //	@Accept			json
 //	@Produce		json
 //	@Param			userID	path		int	true	"User ID"
-//	@Success		200		{object}	models.User
+//	@Success		200		{object}	models.UserWithRole
 //	@Failure		400		{object}	error	"Invalid user ID"
 //	@Failure		404		{object}	error	"User not found"
 //	@Failure		500		{object}	error	"Failed to fetch the user"
@@ -187,7 +187,7 @@ func (app *application) userContextMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func getUserFromCtx(r *http.Request) *models.User {
-	user, _ := r.Context().Value(userCtx).(*models.User)
+func getUserFromCtx(r *http.Request) *models.UserWithRole {
+	user, _ := r.Context().Value(userCtx).(*models.UserWithRole)
 	return user
 }

@@ -29,11 +29,6 @@ definitions:
     - email
     - password
     type: object
-  main.FollowerPayload:
-    properties:
-      follower_id:
-        type: integer
-    type: object
   main.RegisterUserPayload:
     properties:
       email:
@@ -152,6 +147,17 @@ definitions:
       version:
         type: integer
     type: object
+  models.Role:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      level:
+        type: integer
+      name:
+        type: string
+    type: object
   models.User:
     properties:
       created_at:
@@ -162,6 +168,25 @@ definitions:
         type: integer
       is_active:
         type: boolean
+      role_id:
+        type: integer
+      username:
+        type: string
+    type: object
+  models.UserWithRole:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      role:
+        $ref: '#/definitions/models.Role'
+      role_id:
+        type: integer
       username:
         type: string
     type: object
@@ -175,6 +200,8 @@ definitions:
         type: integer
       is_active:
         type: boolean
+      role_id:
+        type: integer
       token:
         type: string
       username:
@@ -422,7 +449,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.User'
+            $ref: '#/definitions/models.UserWithRole'
         "400":
           description: Invalid user ID
           schema: {}
@@ -449,12 +476,6 @@ paths:
         name: userID
         required: true
         type: integer
-      - description: Follower payload
-        in: body
-        name: payload
-        required: true
-        schema:
-          $ref: '#/definitions/main.FollowerPayload'
       produces:
       - application/json
       responses:
@@ -489,12 +510,6 @@ paths:
         name: userID
         required: true
         type: integer
-      - description: Follower payload
-        in: body
-        name: payload
-        required: true
-        schema:
-          $ref: '#/definitions/main.FollowerPayload'
       produces:
       - application/json
       responses:

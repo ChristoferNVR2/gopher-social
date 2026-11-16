@@ -509,7 +509,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.User"
+                            "$ref": "#/definitions/models.UserWithRole"
                         }
                     },
                     "400": {
@@ -552,15 +552,6 @@ const docTemplate = `{
                         "name": "userID",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "description": "Follower payload",
-                        "name": "payload",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/main.FollowerPayload"
-                        }
                     }
                 ],
                 "responses": {
@@ -611,15 +602,6 @@ const docTemplate = `{
                         "name": "userID",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "description": "Follower payload",
-                        "name": "payload",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/main.FollowerPayload"
-                        }
                     }
                 ],
                 "responses": {
@@ -681,14 +663,6 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 100,
                     "minLength": 8
-                }
-            }
-        },
-        "main.FollowerPayload": {
-            "type": "object",
-            "properties": {
-                "follower_id": {
-                    "type": "integer"
                 }
             }
         },
@@ -868,6 +842,23 @@ const docTemplate = `{
                 }
             }
         },
+        "models.Role": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "models.User": {
             "type": "object",
             "properties": {
@@ -882,6 +873,35 @@ const docTemplate = `{
                 },
                 "is_active": {
                     "type": "boolean"
+                },
+                "role_id": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UserWithRole": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "role": {
+                    "$ref": "#/definitions/models.Role"
+                },
+                "role_id": {
+                    "type": "integer"
                 },
                 "username": {
                     "type": "string"
@@ -902,6 +922,9 @@ const docTemplate = `{
                 },
                 "is_active": {
                     "type": "boolean"
+                },
+                "role_id": {
+                    "type": "integer"
                 },
                 "token": {
                     "type": "string"
