@@ -32,7 +32,25 @@ const userCtx userKey = "user"
 //
 //	@Router			/users/{userID} [get]
 func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
-	user := getUserFromCtx(r)
+	userID, err := strconv.ParseInt(chi.URLParam(r, "userID"), 10, 64)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	ctx := r.Context()
+
+	user, err := app.getUser(ctx, userID)
+	if err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			app.notFoundResponse(w, r, err)
+			return
+		default:
+			app.internalServerError(w, r, err)
+			return
+		}
+	}
 
 	if err := app.jsonResponse(w, http.StatusOK, user); err != nil {
 		app.internalServerError(w, r, err)
@@ -157,6 +175,7 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 	}
 }
 
+// TODO: delete this function and use the getUserFromCtx function instead
 func (app *application) userContextMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		idParam := chi.URLParam(r, "userID")
@@ -185,6 +204,7 @@ func (app *application) userContextMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// getUserFromCtx retrieves the user that is logged in from the request context.
 func getUserFromCtx(r *http.Request) *models.UserWithRole {
 	user, _ := r.Context().Value(userCtx).(*models.UserWithRole)
 	return user

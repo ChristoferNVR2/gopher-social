@@ -8,6 +8,8 @@ import (
 	"github.com/ChristoferNVR2/gopher-social/internal/env"
 	"github.com/ChristoferNVR2/gopher-social/internal/mailer"
 	"github.com/ChristoferNVR2/gopher-social/internal/store"
+	"github.com/ChristoferNVR2/gopher-social/internal/store/cache"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 )
 
@@ -40,6 +42,12 @@ func main() {
 			maxOpenConns: env.GetInt("DB_MAX_OPEN_CONNS", 30),
 			maxIdleConns: env.GetInt("DB_MAX_IDLE_CONNS", 30),
 			maxIdleTime:  env.GetString("DB_MAX_IDLE_TIME", "15m"),
+		},
+		redisCfg: redisConfig{
+			addr:    env.GetString("REDIS_ADDR", "localhost:6379"),
+			pw:      env.GetString("REDIS_PASSWORD", ""),
+			db:      env.GetInt("REDIS_DB", 0),
+			enabled: env.GetBool("REDIS_ENABLED", false),
 		},
 		env:     env.GetString("ENV", "development"),
 		version: version,
@@ -79,7 +87,15 @@ func main() {
 
 	logger.Info("database cerronnection pool established")
 
+	var rdb *redis.Client
+	if cfg.redisCfg.enabled {
+		rdb = cache.NewRedisClient(cfg.redisCfg.addr, cfg.redisCfg.pw, cfg.redisCfg.db)
+		defer rdb.Close()
+		logger.Info("redis client established")
+	}
+
 	store := store.NewStorage(db)
+	cacheStorage := cache.NewRedisStorage(rdb)
 
 	resend, err := mailer.NewResend(cfg.mail.resend.apiKey, cfg.mail.fromEmail)
 	if err != nil {
@@ -95,6 +111,7 @@ func main() {
 	app := &application{
 		config:        cfg,
 		store:         store,
+		cacheStorage:  cacheStorage,
 		logger:        logger,
 		mailer:        resend,
 		authenticator: jwtAuthenticator,
