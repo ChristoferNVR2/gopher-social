@@ -44,6 +44,9 @@ func (app *application) AuthTokenMiddleware(next http.Handler) http.Handler {
 
 		ctx := r.Context()
 
+		// app.getUser fetches the user from the database or cache, depending on the configuration.
+		// if cache is not desired, app.store.Users.GetByID can be used instead.
+		// This is a trade-off between performance and potential staleness of the user data.
 		user, err := app.getUser(ctx, userID)
 
 		if err != nil {
@@ -125,6 +128,25 @@ func (app *application) checkRolePrecedence(ctx context.Context, user *models.Us
 	return user.Role.Level >= role.Level, nil
 }
 
+// getUser returns a user (with their role) by ID, going through the Redis
+// cache when it is enabled.
+//
+// With caching (redisCfg.enabled), the lookup order is:
+//  1. Redis. A hit returns immediately, with no database query.
+//  2. Postgres, on a miss. The result is then stored in Redis for
+//     userExpTime (1 minute) so following lookups are hits.
+//
+// It is used by AuthTokenMiddleware, which runs on every authenticated
+// request, so the cache saves roughly one Postgres query per request.
+//
+// Without caching (redisCfg.enabled = false), it simply calls
+// store.Users.GetByID on every call. The behavior is the same, only slower
+// under load. That is the easiest way to debug a suspected stale value.
+//
+// Trade-off: a cached user can be stale for up to the TTL. If a user is
+// deactivated or their role changes, the old data is still served until the
+// entry expires (or is deleted from Redis). The password hash is never cached
+// (`json:"-"`), so cached users have an empty Password.Hash.
 func (app *application) getUser(ctx context.Context, userID int64) (*models.UserWithRole, error) {
 	if !app.config.redisCfg.enabled {
 		return app.store.Users.GetByID(ctx, userID)

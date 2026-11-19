@@ -59,10 +59,10 @@ func (s *UsersStore) Create(ctx context.Context, tx *sql.Tx, user *models.User) 
 
 func (s *UsersStore) GetByID(ctx context.Context, id int64) (*models.UserWithRole, error) {
 	const query = `
-		SELECT u.id, u.username, u.email, u.password, u.created_at, r.id, r.name, r.description, r.level
+		SELECT u.id, u.username, u.email, u.password, u.created_at, u.is_active, u.role_id, r.id, r.name, r.description, r.level
 		FROM users u
 		JOIN roles r ON (u.role_id = r.id)
-		WHERE u.id = $1 AND is_active = true
+		WHERE u.id = $1 AND u.is_active = true
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
@@ -76,6 +76,8 @@ func (s *UsersStore) GetByID(ctx context.Context, id int64) (*models.UserWithRol
 		&user.Email,
 		&user.Password.Hash,
 		&user.CreatedAt,
+		&user.IsActive,
+		&user.RoleID,
 		&user.Role.ID,
 		&user.Role.Name,
 		&user.Role.Description,

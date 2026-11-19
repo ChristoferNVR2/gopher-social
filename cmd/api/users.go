@@ -38,6 +38,15 @@ func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// The authenticated user is already loaded (and cached) by
+	// AuthTokenMiddleware, so reuse it when the URL asks for the same user.
+	if authUser := getUserFromCtx(r); authUser != nil && authUser.ID == userID {
+		if err := app.jsonResponse(w, http.StatusOK, authUser); err != nil {
+			app.internalServerError(w, r, err)
+		}
+		return
+	}
+
 	ctx := r.Context()
 
 	user, err := app.getUser(ctx, userID)
