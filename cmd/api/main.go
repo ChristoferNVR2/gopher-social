@@ -119,5 +119,7 @@ func main() {
 
 	mux := app.mount()
 
-	logger.Fatal(app.run(mux))
+	if err := app.run(mux); err != nil {
+		logger.Errorw("server stopped with error", "error", err)
+	}
 }

@@ -1,8 +1,13 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/ChristoferNVR2/gopher-social/docs"
@@ -148,6 +153,8 @@ func (app *application) mount() http.Handler {
 	return r
 }
 
+const shutdownTimeout = 15 * time.Second
+
 func (app *application) run(mux http.Handler) error {
 	docs.SwaggerInfo.Version = version
 	docs.SwaggerInfo.Host = app.config.apiURL
@@ -161,7 +168,40 @@ func (app *application) run(mux http.Handler) error {
 		IdleTimeout:  time.Minute,
 	}
 
-	app.logger.Infow("server has started", "addr", app.config.addr, "env", app.config.env)
+	signalCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 
-	return srv.ListenAndServe()
+	serverErrors := make(chan error, 1)
+
+	go func() {
+		app.logger.Infow("server has started", "addr", app.config.addr, "env", app.config.env)
+		serverErrors <- srv.ListenAndServe()
+	}()
+
+	select {
+	case err := <-serverErrors:
+		if !errors.Is(err, http.ErrServerClosed) {
+			return err
+		}
+		return nil
+	case <-signalCtx.Done():
+		app.logger.Infow("shutdown requested")
+		stop()
+	}
+
+	// Give in-flight requests time to finish before giving up.
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	defer cancel()
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		app.logger.Errorw("graceful shutdown failed, forcing close", "error", err)
+
+		if closeErr := srv.Close(); closeErr != nil {
+			return errors.Join(err, closeErr)
+		}
+		return err
+	}
+
+	app.logger.Infow("server stopped")
+	return nil
 }
