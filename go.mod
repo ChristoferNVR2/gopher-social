@@ -36,6 +36,7 @@ require (
 	github.com/go-playground/universal-translator v0.18.2 // indirect
 	github.com/leodido/go-urn v1.5.0 // indirect
 	github.com/sendgrid/rest v2.6.9+incompatible // indirect
+	github.com/stretchr/testify v1.12.1 // indirect
 	github.com/swaggo/files v1.0.1 // indirect
 	go.uber.org/atomic v1.12.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect

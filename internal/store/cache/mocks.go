@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ChristoferNVR2/gopher-social/internal/models"
+	"github.com/stretchr/testify/mock"
 )
 
 func NewMockStore() Storage {
@@ -12,12 +13,16 @@ func NewMockStore() Storage {
 	}
 }
 
-type MockUserStore struct{}
+type MockUserStore struct {
+	mock.Mock
+}
 
 func (m *MockUserStore) Get(ctx context.Context, userID int64) (*models.UserWithRole, error) {
-	return &models.UserWithRole{User: &models.User{}}, nil
+	args := m.Called(userID)
+	return nil, args.Error(1)
 }
 
 func (m *MockUserStore) Set(ctx context.Context, user *models.UserWithRole) error {
-	return nil
+	args := m.Called(user)
+	return args.Error(0)
 }
