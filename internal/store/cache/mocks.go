@@ -8,8 +8,15 @@ import (
 )
 
 func NewMockStore() Storage {
+	m := &MockUserStore{}
+
+	// Defaults: every lookup is a cache miss and every write succeeds.
+	// Tests can still add specific expectations with On(...).
+	m.On("Get", mock.Anything).Return(nil, nil)
+	m.On("Set", mock.Anything, mock.Anything).Return(nil)
+
 	return Storage{
-		Users: &MockUserStore{},
+		Users: m,
 	}
 }
 

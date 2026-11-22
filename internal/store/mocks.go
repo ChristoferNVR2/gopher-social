@@ -21,7 +21,7 @@ func (m *MockUserStore) Create(ctx context.Context, tx *sql.Tx, user *models.Use
 }
 
 func (m *MockUserStore) GetByID(ctx context.Context, id int64) (*models.UserWithRole, error) {
-	return &models.UserWithRole{User: &models.User{}}, nil
+	return &models.UserWithRole{User: &models.User{ID: id}}, nil
 }
 
 func (m *MockUserStore) GetByEmail(ctx context.Context, email string) (*models.User, error) {

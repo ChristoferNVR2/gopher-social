@@ -61,11 +61,14 @@ func TestGetUser(t *testing.T) {
 
 		req.Header.Set("Authorization", "Bearer "+testToken)
 
+		// The app is shared with earlier subtests, so forget their calls first.
+		mockCacheStore.Calls = nil
+
 		rr := executeRequest(req, mux)
 
 		checkResponseCode(t, http.StatusOK, rr.Code)
 
-		mockCacheStore.AssertNumberOfCalls(t, "Get", 2)
+		mockCacheStore.AssertNumberOfCalls(t, "Get", 1)
 
 		mockCacheStore.Calls = nil
 	})
