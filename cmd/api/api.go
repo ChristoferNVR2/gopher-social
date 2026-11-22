@@ -13,6 +13,7 @@ import (
 	"github.com/ChristoferNVR2/gopher-social/docs"
 	"github.com/ChristoferNVR2/gopher-social/internal/auth"
 	"github.com/ChristoferNVR2/gopher-social/internal/mailer"
+	"github.com/ChristoferNVR2/gopher-social/internal/ratelimiter"
 	"github.com/ChristoferNVR2/gopher-social/internal/store"
 	"github.com/ChristoferNVR2/gopher-social/internal/store/cache"
 	"github.com/go-chi/chi/v5"
@@ -29,6 +30,7 @@ type application struct {
 	logger        *zap.SugaredLogger
 	mailer        mailer.Client
 	authenticator auth.Authenticator
+	rateLimiter   ratelimiter.Limiter
 }
 
 type config struct {
@@ -41,6 +43,7 @@ type config struct {
 	mail        mailConfig
 	auth        authConfig
 	redisCfg    redisConfig
+	rateLimiter ratelimiter.Config
 }
 
 type redisConfig struct {
@@ -99,6 +102,7 @@ func (app *application) mount() http.Handler {
 	r.Use(middleware.ClientIPFromRemoteAddr)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(app.RateLimiterMiddleware)
 
 	// Set a timeout value on the request context (ctx), that will signal
 	// through ctx.Done() that the request has timed out and further

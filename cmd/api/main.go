@@ -7,6 +7,7 @@ import (
 	"github.com/ChristoferNVR2/gopher-social/internal/db"
 	"github.com/ChristoferNVR2/gopher-social/internal/env"
 	"github.com/ChristoferNVR2/gopher-social/internal/mailer"
+	"github.com/ChristoferNVR2/gopher-social/internal/ratelimiter"
 	"github.com/ChristoferNVR2/gopher-social/internal/store"
 	"github.com/ChristoferNVR2/gopher-social/internal/store/cache"
 	"github.com/redis/go-redis/v9"
@@ -69,6 +70,11 @@ func main() {
 				issuer: "gopher-social",
 			},
 		},
+		rateLimiter: ratelimiter.Config{
+			RequestsPerTimeFrame: env.GetInt("RATE_LIMIT_REQUESTS", 100),
+			TimeFrame:            time.Minute,
+			Enabled:              env.GetBool("RATE_LIMIT_ENABLED", true),
+		},
 	}
 
 	logger := zap.Must(zap.NewProduction()).Sugar()
@@ -85,7 +91,7 @@ func main() {
 	}
 	defer db.Close()
 
-	logger.Info("database cerronnection pool established")
+	logger.Info("database connection pool established")
 
 	var rdb *redis.Client
 	if cfg.redisCfg.enabled {
@@ -108,6 +114,11 @@ func main() {
 		cfg.auth.token.issuer,
 	)
 
+	rateLimiter := ratelimiter.NewFixedWindowLimiter(
+		cfg.rateLimiter.RequestsPerTimeFrame,
+		cfg.rateLimiter.TimeFrame,
+	)
+
 	app := &application{
 		config:        cfg,
 		store:         store,
@@ -115,6 +126,7 @@ func main() {
 		logger:        logger,
 		mailer:        resend,
 		authenticator: jwtAuthenticator,
+		rateLimiter:   rateLimiter,
 	}
 
 	mux := app.mount()

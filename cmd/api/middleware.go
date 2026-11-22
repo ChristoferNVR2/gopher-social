@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"math"
+	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -174,4 +176,24 @@ func (app *application) getUser(ctx context.Context, userID int64) (*models.User
 	}
 
 	return user, nil
+}
+
+func (app *application) RateLimiterMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if app.config.rateLimiter.Enabled {
+			ip, _, err := net.SplitHostPort(r.RemoteAddr)
+			if err != nil {
+				app.internalServerError(w, r, fmt.Errorf("invalid remote address: %v", err))
+				return
+			}
+
+			if allowed, retryAfter := app.rateLimiter.Allow(ip); !allowed {
+				secs := int(math.Ceil(retryAfter.Seconds()))
+				app.rateLimitExceededResponse(w, r, strconv.Itoa(secs))
+				return
+			}
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
