@@ -12,6 +12,7 @@ import (
 
 	"github.com/ChristoferNVR2/gopher-social/docs"
 	"github.com/ChristoferNVR2/gopher-social/internal/auth"
+	"github.com/ChristoferNVR2/gopher-social/internal/env"
 	"github.com/ChristoferNVR2/gopher-social/internal/mailer"
 	"github.com/ChristoferNVR2/gopher-social/internal/ratelimiter"
 	"github.com/ChristoferNVR2/gopher-social/internal/store"
@@ -89,19 +90,18 @@ type dbConfig struct {
 func (app *application) mount() http.Handler {
 	r := chi.NewRouter()
 
+	r.Use(middleware.RequestID)
+	r.Use(middleware.ClientIPFromRemoteAddr)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"https://*", "http://*"},
+		AllowedOrigins:   []string{env.GetString("CORS_ALLOWED_ORIGINS", app.config.frontendURL)},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: false,
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	}))
-
-	r.Use(middleware.RequestID)
-	r.Use(middleware.ClientIPFromRemoteAddr)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
 	r.Use(app.RateLimiterMiddleware)
 
 	// Set a timeout value on the request context (ctx), that will signal
