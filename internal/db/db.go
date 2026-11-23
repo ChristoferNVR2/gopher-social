@@ -17,7 +17,7 @@ func New(addr string, MaxOpenConns, MaxIdleConns int, MaxIdleTime string) (*sql.
 	db.SetMaxOpenConns(MaxOpenConns)
 	db.SetMaxIdleConns(MaxIdleConns)
 
-	duration, err := env.GetDuration(MaxIdleTime, 15*time.Minute)
+	duration, _ := env.GetDuration(MaxIdleTime, 15*time.Minute)
 	db.SetConnMaxIdleTime(duration)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
